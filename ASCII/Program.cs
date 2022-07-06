@@ -1,30 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
-using System.Linq;
-using System.Reflection.Metadata;
-using System.Runtime.InteropServices;
 
 namespace ASCII
 {
-    class Program
+    internal class Program
     {
-        public static string[] CHARS = {"@", "%", "#", "*", "+", "=", "-", ":", ",", ".", " "};
-        public static Bitmap GetImage(String path) {
+        private static string[] CHARS = { "@", "%", "#", "*", "+", "=", "-", ":", ",", ".", " " };
+        private const string PATH_PROMT = "Please Enter a path to an image:";
+
+        private static Bitmap GetImage(String path)
+        {
+            try
+            {
                 return new Bitmap(path);
+            }catch (Exception)
+            {
+                Console.WriteLine("Invalid path entered, Please try again...");
+                return null;
+            }
         }
 
-        public static Bitmap ResizeImage(Bitmap image) {
-            decimal ratio = ((decimal)image.Height / (decimal)image.Width / 1.75m);
-            
-            int newHeight = (int)(100 * ratio);
-            Console.WriteLine(newHeight);
-            return new Bitmap(image, new Size(100, newHeight));
+        private static Bitmap ResizeImage(Bitmap image)
+        {
+            //decimal ratio = ((decimal)image.Height / (decimal)image.Width / 1.7m);
+
+            //int newHeight = (int)(100 * ratio);
+            //Console.WriteLine(newHeight);
+            return new Bitmap(image, new Size(image.Width / 4, image.Height / 4));
         }
 
-        public static Bitmap ToGrayScale(Bitmap image) {
+        private static Bitmap ToGrayScale(Bitmap image)
+        {
             for (int i = 0; i < image.Width; i++)
             {
                 for (int j = 0; j < image.Height; j++)
@@ -39,8 +47,9 @@ namespace ASCII
 
             return image;
         }
-        public static string ToASCII(Bitmap image) {
 
+        private static string ToASCII(Bitmap image)
+        {
             string pixels = "";
             for (int i = 0; i < image.Height; i++)
             {
@@ -50,20 +59,14 @@ namespace ASCII
                     double d = c / 25;
                     double index = Math.Round(d);
                     pixels += CHARS[(int)index];
-
                 }
             }
 
-
-            return pixels;
-        }
-        public static void SaveImage(Bitmap bm, String fileName) {
-            String path = @"D:\CS-Projects\ASCII\ASCII\";
-            Bitmap copy = bm;
-            copy.Save(path+fileName+"GS.jpg", ImageFormat.Jpeg);
+            return pixels;bool 
         }
 
-        public static List<string> SplitString(string s) {
+        private static List<string> SplitString(string s)
+        {
             int len = s.Length;
             List<string> ascii = new List<string>();
             for (int i = 0; i < len; i++)
@@ -71,26 +74,58 @@ namespace ASCII
                 if (i % 100 == 0 && i != 0)
                 {
                     ascii.Add(s.Substring(i, 100));
-
                 }
             }
             return ascii;
         }
 
-        static void Main(string[] args)
+        private static string CreateFileName(string imageName)
         {
-            Console.WriteLine("Please Enter a path to image:");
-            String path = Console.ReadLine();
+            return imageName.Split('.')[0];
+        }
 
-            Bitmap grey = ToGrayScale(ResizeImage(GetImage(@path)));
+        private static string GetPathFromUserInput()
+        {
+            Console.WriteLine(PATH_PROMT);
+            var path = Console.ReadLine();
+            try
+            {
+                path = Path.GetFullPath(path);
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("Please enter a valid path.");
+                path = "";
+            }
+            return path;
+        }
+        private static void InitializeASCIIConversion()
+        {
+            string path = GetPathFromUserInput();
 
-            File.Delete(@"D:\CS-Projects\ASCII\ASCII\ASCII.txt");
+            path = path.Trim();
+            while (string.IsNullOrEmpty(path))
+            {
+                path = GetPathFromUserInput();
+            }
+            var imageFromPath = GetImage(@path);
+            if (imageFromPath == null)
+            {
+                InitializeASCIIConversion();
+            }
+            var resizedImage = ResizeImage(imageFromPath);
+            Bitmap grey = ToGrayScale(resizedImage);
 
-            File.WriteAllLines(@"D:\CS-Projects\ASCII\ASCII\ASCII.txt", SplitString(ToASCII(grey)));
+            var imageName = CreateFileName(Path.GetFileName(path));
+            var directory = Path.GetDirectoryName(path);
+            var newPath = $"{directory}" + "/" +$"{imageName}.txt";
+            File.WriteAllLines(newPath, SplitString(ToASCII(grey)));
 
-            Console.WriteLine(@"Here's the path to your ASCII image: D:\CS-Projects\ASCII\ASCII\ASCII.txt");
-
-
+            Console.WriteLine($"Here's the path to your ASCII image: {path}");
+        }
+        private static void Main()
+        {
+            InitializeASCIIConversion();
         }
     }
 }
