@@ -24,11 +24,7 @@ namespace ASCII
 
         private static Bitmap ResizeImage(Bitmap image)
         {
-            //decimal ratio = ((decimal)image.Height / (decimal)image.Width / 1.7m);
-
-            //int newHeight = (int)(100 * ratio);
-            //Console.WriteLine(newHeight);
-            return new Bitmap(image, new Size(image.Width / 4, image.Height / 4));
+            return new Bitmap(image, new Size(image.Width / 6, image.Height / 10));
         }
 
         private static Bitmap ToGrayScale(Bitmap image)
@@ -62,18 +58,18 @@ namespace ASCII
                 }
             }
 
-            return pixels;bool 
+            return pixels;
         }
 
-        private static List<string> SplitString(string s)
+        private static List<string> SplitString(string s, int width)
         {
             int len = s.Length;
             List<string> ascii = new List<string>();
             for (int i = 0; i < len; i++)
             {
-                if (i % 100 == 0 && i != 0)
+                if (i % width == 0 && i != 0)
                 {
-                    ascii.Add(s.Substring(i, 100));
+                    ascii.Add(s.Substring(i, width));
                 }
             }
             return ascii;
@@ -118,8 +114,8 @@ namespace ASCII
 
             var imageName = CreateFileName(Path.GetFileName(path));
             var directory = Path.GetDirectoryName(path);
-            var newPath = $"{directory}" + "/" +$"{imageName}.txt";
-            File.WriteAllLines(newPath, SplitString(ToASCII(grey)));
+            var newPath = $"{directory}" + @"\" +$"{imageName}.txt";
+            File.WriteAllLines(newPath, SplitString(ToASCII(grey), grey.Width));
 
             Console.WriteLine($"Here's the path to your ASCII image: {path}");
         }
